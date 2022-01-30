@@ -168,7 +168,9 @@ function createTask(task_number,
     // New task div
     var task_div = document.createElement("div");
     task_div.id = task_id;
-    task_div.classList.add('task_div');
+    task_div.setAttribute('jira-type','task');
+    task_div.setAttribute('jira-enabled', 'true');
+    task_div.classList.add('task_div_task');
     
     task_div.style.left = (1*30)+"px";
 
@@ -241,6 +243,69 @@ function createTask(task_number,
 	removeElement(task_id, subtask_div_id);
     };
     dropdown_option_delete.text = "Delete Task";
+
+    // Make Epic
+    var dropdown_option_epic = document.createElement("a");
+    dropdown_option_epic.onclick = function(){
+	if (task_div.getAttribute('jira-enabled')=='true'){
+	    // Make epic
+	    task_div.setAttribute('jira-type','epic');
+	    task_div.classList.remove('task_div_task','task_div_bug');
+	    task_div.classList.add('task_div_epic');
+	}
+    };
+    dropdown_option_epic.text = "Epic";
+
+    // Make Task
+    var dropdown_option_task = document.createElement("a");
+    dropdown_option_task.onclick = function(){
+	if (task_div.getAttribute('jira-enabled')=='true'){
+	    // Make task
+	    task_div.setAttribute('jira-type','task');
+	    task_div.classList.remove('task_div_epic','task_div_bug');
+	    task_div.classList.add('task_div_task');
+	}
+    };
+    dropdown_option_task.text = "Task";
+
+    // Make Bug
+    var dropdown_option_bug = document.createElement("a");
+    dropdown_option_bug.onclick = function(){
+	if (task_div.getAttribute('jira-enabled')=='true'){
+	    // Make bug
+	    task_div.setAttribute('jira-type','bug');
+	    task_div.classList.remove('task_div_task','task_div_epic');
+	    task_div.classList.add('task_div_bug');
+	}
+    };
+    dropdown_option_bug.text = "Bug";
+
+    // Disable jira
+    var dropdown_option_disable_jira = document.createElement("a");
+    dropdown_option_disable_jira.onclick = function(){
+	// Make bug
+	if (task_div.getAttribute('jira-enabled')=='true'){
+	    task_div.setAttribute('jira-enabled','false');
+	    task_div.classList.remove('task_div_task','task_div_epic', 'task_div_bug');
+	    dropdown_option_epic.classList.add('dropdown-content-disabled');
+	    dropdown_option_task.classList.add('dropdown-content-disabled');
+	    dropdown_option_bug.classList.add('dropdown-content-disabled');
+	} else {
+	    task_div.setAttribute('jira-enabled','true');
+	    var jira_type =  task_div.getAttribute('jira-type');
+	    if (jira_type=="epic"){
+		task_div.classList.add('task_div_epic');
+	    } else if (jira_type=="bug"){
+		task_div.classList.add('task_div_bug');
+	    } else {
+		task_div.classList.add('task_div_task');
+	    }
+	    dropdown_option_epic.classList.remove('dropdown-content-disabled');
+	    dropdown_option_task.classList.remove('dropdown-content-disabled');
+	    dropdown_option_bug.classList.remove('dropdown-content-disabled');
+	}
+    };
+    dropdown_option_disable_jira.text = "Disable/Enable Jira";
     
 
     // The subtask div
@@ -254,6 +319,10 @@ function createTask(task_number,
     dropdown_div.appendChild(dropdown_option_edit);
     dropdown_div.appendChild(dropdown_option_subtask);
     dropdown_div.appendChild(dropdown_option_delete);
+    dropdown_div.appendChild(dropdown_option_disable_jira);
+    dropdown_div.appendChild(dropdown_option_bug);
+    dropdown_div.appendChild(dropdown_option_epic);
+    dropdown_div.appendChild(dropdown_option_task);
 
     // Add the drop down button and menu
     task_dropdown.appendChild(dropdown_button);

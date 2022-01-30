@@ -12,8 +12,9 @@
 }
 
 .task_desc {
-    width: 500px;
+    min-width: 100px;
     float: left;
+    height: 60px;
     /*
       position: relative;
       left: 20px;
@@ -24,7 +25,7 @@
     float: left;
     position: relative;
     border-style: solid;
-    height: 100%;
+    height: 60px;
     width: 100px;
     text-align: center;
 }
@@ -34,7 +35,8 @@
 }
 
 .task_textarea {
-    width: 500px;
+    height: 60px;
+    min-width: 100px;
     float: left;
     position: relative;
     /*left: 20px;*/
@@ -47,6 +49,25 @@
     background: grey;
     width: 100%;
     height: 60px;
+}
+
+.task_div_task {
+    border-style: solid;
+    border-color: blue;
+    border-radius: 4px;
+    
+}
+
+.task_div_epic {
+    border-style: solid;
+    border-color: purple;
+    border-radius: 4px;
+}
+
+.task_div_bug {
+    border-style: solid;
+    border-color: orange;
+    border-radius: 4px;
 }
 
 /*
@@ -83,6 +104,7 @@
   border: none;
   cursor: pointer;
   fill: left;
+  height: 60px;
 }
 
 /* Dropdown button on hover & focus */
@@ -104,6 +126,10 @@
   min-width: 160px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
+}
+
+.dropdown-content-disabled {
+    background-color: grey;
 }
 
 /* Links inside the dropdown */
