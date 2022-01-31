@@ -2,14 +2,26 @@
 
   <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="dropdown.js"></script>
     <link rel="stylesheet" href="dropdown.css"></link>
   </head>
   
   <body>
-    <div id="task_holder">
-      <button type="button" onclick="newTask('task_holder', 0)">New Task</button>
-      <button type="button" onclick="newExistingTask('task_holder', 0)">New Existing Task</button>
+    <button type="button" onclick="newTaskFromButton('task_holder')">New Task</button>
+    <button type="button" onclick="saveStatus()">Save</button>
+    <button class="open-button" onclick="toggleForm()">Settings</button>
+    <div class="form-popup" id="myForm" style="display: none;">
+      <form class="form-container" onsubmit="return false;">
+	<h1>Settings</h1>
+	
+	<label for="indent"><b>Indent</b></label>
+	<input type="number" id="indent_input_id" class="form-container indent" name="indent" min="5" max="100" value="30" onchange="indentChange()">
+      </form>
     </div>
+    <div id="task_holder">
+      
+    </div>
+    
+    
+    <script src="dropdown.js"></script>
   </body>
 </html>
