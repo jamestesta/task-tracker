@@ -3,21 +3,43 @@
   <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="dropdown.css"></link>
+    <link rel="stylesheet" href="model.css"></link>
   </head>
   
   <body>
     <button type="button" onclick="newTaskFromButton('task_holder')">New Task</button>
     <button type="button" onclick="saveStatus()">Save</button>
+    <button id="myBtn">Open Modal</button>
     <button class="open-button" onclick="toggleForm()">Settings</button>
     <div class="form-popup" id="myForm" style="display: none;">
+      <!-- Not sure if i need this as a form or if it can be taken out-->
       <form class="form-container" onsubmit="return false;">
 	<h1>Settings</h1>
 	
 	<label for="indent"><b>Indent</b></label>
 	<input type="number" id="indent_input_id" class="form-container indent" name="indent" min="5" max="100" value="30" onchange="indentChange()">
+	<br>
+	<label for="autosaveload"><b>Auto Save/Load</b></label>
+	<button id="autosaveload_btn" name="autosaveload" onclick="toggleAutoSaveLoad()">Enable/Disable</button>
       </form>
     </div>
     <div id="task_holder">
+      
+    </div>
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+      
+      <!-- Modal content -->
+      <div class="modal-content">
+	<span class="close">&times;</span>
+	<h1 id="jira-modal-tag">Example Jira Tag</h1>
+	<button id="jira-modal-toggle">Enable/Disable</button> <br>
+	<button id="jira-modal-epic" class="button-jira">Epic</button> <br>
+	<button id="jira-modal-task" class="button-jira">Task</button> <br>
+	<button id="jira-modal-bug" class="button-jira">Bug</button> <br>
+	<button id="jira-modal-subtask" class="button-jira">Subtask</button> <br>
+      </div>
       
     </div>
     

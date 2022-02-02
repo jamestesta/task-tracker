@@ -12,7 +12,7 @@
 }
 
 .task_desc {
-    min-width: 100px;
+    width: 400px;
     float: left;
     height: 60px;
     /*
@@ -36,7 +36,7 @@
 
 .task_textarea {
     height: 60px;
-    min-width: 100px;
+    width: 400px;
     float: left;
     position: relative;
     /*left: 20px;*/

@@ -1,10 +1,15 @@
 
 
+
+
+
+
 const jiraType = {
     None: 'None',
     Bug: 'Bug',
     Epic: 'Epic',
-    Task: 'Task'
+    Task: 'Task',
+    Subtask: 'Subtask'
 }
 
 
@@ -13,7 +18,7 @@ class task{
 	this.id = null;
 	this.jira_enabled = false;
 	this.jira_type = jiraType.None;
-	this.jira_name = "";
+	this.jira_name = null;
 	this.description = "New Task";
 	this.completed = false;
 	this.subtasks = [];
@@ -23,17 +28,44 @@ class task{
 
 class task_tracker{
     constructor(){
+	this.jira_type = jiraType.None;
 	this.num_tasks = 0;
 	this.active_tasks = [];
 	this.indent = 30;
+	this.autosaveload = false;
 	this.subtasks = [];
     }
 }
 
 
 
-function saveStatus(){
-    localStorage.setItem('taskTracker', JSON.stringify(task_tracker_obj));
+function saveStatus(override){
+
+    // We need to override if we are toggling because we want
+    // to save that bit specificlly
+    if (task_tracker_obj.autosaveload || override){
+	localStorage.setItem('taskTracker', JSON.stringify(task_tracker_obj));
+    }
+}
+
+function toggleAutoSaveLoad(){
+    if (task_tracker_obj.autosaveload){
+	task_tracker_obj.autosaveload = false;
+    } else {
+	task_tracker_obj.autosaveload = true;
+    }
+
+    setASLDescription();
+    saveStatus(true);
+}
+
+function setASLDescription(){
+    asl_obj = document.getElementById("autosaveload_btn");
+    if (task_tracker_obj.autosaveload){
+	asl_obj.innerHTML = "Disable";
+    } else {
+	asl_obj.innerHTML = "Enable";
+    }
 }
 
 function blankSaveStatus(){
@@ -48,7 +80,13 @@ function loadStatus(){
     if (!task_tracker_obj){
 	task_tracker_obj = new task_tracker();
     } else {
-	importTasksFromObject(task_tracker_obj, 'task_holder');
+
+	// Check if we want to load in the previous stuff
+	if (task_tracker_obj.autosaveload){
+	    importTasksFromObject(task_tracker_obj, 'task_holder');
+	} else {
+	    task_tracker_obj = new task_tracker();
+	}
     }
 }
 
@@ -67,15 +105,12 @@ function refreshDomTasks(){
 function importTasksFromObject(task_obj, subtask_id){
     var i;
 
-    console.log(task_obj.subtasks.length);
 
     if (task_obj.subtasks.length == 0){
-	console.log("RETURNING");
 	return;
     }
     
     for (i=0;i<task_obj.subtasks.length;++i){
-	console.log("NEW SUBTASK");
 	var sub_task_obj = task_obj.subtasks[i];
 	var new_subtask_id = newExistingTask(sub_task_obj, subtask_id, task_obj);
 
@@ -87,7 +122,6 @@ function importTasksFromObject(task_obj, subtask_id){
 
 function clearAllDomTasks(){
     task_tracker_div = document.getElementById('task_holder')
-    console.log(task_tracker_div);
     removeAllChildNodes(task_tracker_div);
 }
 
@@ -106,6 +140,7 @@ function dropDownTaskOptions(button) {
 
 // Close the dropdown menu if the user clicks outside of it
 window.onclick = function(event) {
+    // When the user unclicks on a dropdown
     if (!event.target.matches('.dropbtn') && event.target) {
 	var dropdowns = document.getElementsByClassName("dropdown-content");
 	var i;
@@ -117,14 +152,24 @@ window.onclick = function(event) {
 	}
     }
 
+    // When the user clicks on the settings button
+
     if (!event.target.matches('.open-button') &&
 	!event.target.matches('.form-container') &&
 	!event.target.matches('.form-container .indent') &&
+	!event.target.matches('.form-popup') &&
+	!event.target.matches('.form-container *') &&
 	event.target) {
 	if (formOpen){
 	    closeForm();
 	}
     }
+
+    // When the user clicks anywhere outside of the modal, close it
+    if (event.target == modal) {
+	modal.style.display = "none";
+    }
+
 }
 
 var num_tasks = 0;
@@ -136,11 +181,6 @@ function newExistingTask(task_obj, parent_subtask_div_id, parent_obj) {
 
     // This is the object that the task is being placed into
     parent_div = document.getElementById(parent_subtask_div_id);
-
-    console.log(parent_subtask_div_id);
-    console.log(parent_div);
-
-    console.log(typeof task_obj);
     
     completed = task_obj.completed;
     jira_enabled = task_obj.jira_enabled;
@@ -169,15 +209,11 @@ function newTaskFromButton(parent_subtask_div_id){
 }
 
 function newTask(parent_subtask_div_id, parent_obj) {
-
-    console.log(parent_obj);
     
     num_tasks += 1;
 
     task_tracker_obj.num_tasks += 1;
     task_id = task_tracker_obj.num_tasks;
-
-    console.log(task_tracker_obj);
 
     // May be a little over board but just in case it gets used
     // a lot and the int number for js counts over the max
@@ -198,8 +234,6 @@ function newTask(parent_subtask_div_id, parent_obj) {
     } else {
 	task_tracker_obj.subtasks.push(new_task_obj);
     }
-
-    console.log(task_tracker_obj);
 
     description = "New Task";
 
@@ -333,7 +367,6 @@ function removeElement(element_id, subtask_element_id, task_obj, parent_obj){
 	// Remove all of the child subtasks
 	removeSubTasks(task_obj);
 	if (parent_obj){
-	    console.log("Removing object from list");
 	    var index_to_remove = parent_obj.subtasks.indexOf(task_obj);
 	    parent_obj.subtasks.splice(index_to_remove, 1);
 	    saveStatus();
@@ -357,56 +390,39 @@ function toggleChecked(checkbox_obj, task_obj, task_description){
 }
 
 function toggleJiraEnabled(task_obj,
-			   task_div,
-			   dropdown_option_epic,
-			   dropdown_option_task,
-			   dropdown_option_bug) {
+			   task_div) {
     if (task_obj.jira_enabled){
 	setJiraDisabled(task_obj,
-			task_div,
-			dropdown_option_epic,
-			dropdown_option_task,
-			dropdown_option_bug)
+			task_div)
+	return false;
     } else {
 	setJiraEnabled(task_obj,
-		       task_div,
-		       dropdown_option_epic,
-		       dropdown_option_task,
-		       dropdown_option_bug)
+		       task_div)
+	return true;
     }
 }
 
 function setJiraEnabled(task_obj,
-			task_div,
-			dropdown_option_epic,
-			dropdown_option_task,
-			dropdown_option_bug){
+			task_div){
     
     var jira_type = task_obj.jira_type;
     if (jira_type==jiraType.Epic){
 	task_div.classList.add('task_div_epic');
     } else if (jira_type==jiraType.Bug){
 	task_div.classList.add('task_div_bug');
-    } else {
+    } else if (jira_type==jiraType.Task){
 	task_div.classList.add('task_div_task');
+    } else if (jira_type==jiraType.Subtask){
+	task_div.classList.add('task_div_subtask');
     }
-    dropdown_option_epic.classList.remove('dropdown-content-disabled');
-    dropdown_option_task.classList.remove('dropdown-content-disabled');
-    dropdown_option_bug.classList.remove('dropdown-content-disabled');
     task_obj.jira_enabled=true;
     saveStatus();
 }
 
 function setJiraDisabled(task_obj,
-			   task_div,
-			   dropdown_option_epic,
-			   dropdown_option_task,
-			   dropdown_option_bug){
+			 task_div){
     
     task_div.classList.remove('task_div_task','task_div_epic', 'task_div_bug');
-    dropdown_option_epic.classList.add('dropdown-content-disabled');
-    dropdown_option_task.classList.add('dropdown-content-disabled');
-    dropdown_option_bug.classList.add('dropdown-content-disabled');
     task_obj.jira_enabled=false;
     saveStatus();
 }
@@ -442,6 +458,16 @@ function setJiraTask(task_obj, task_div){
     }
 }
 
+function setJiraTask(task_obj, task_div){
+    if (task_obj.jira_enabled){
+	// Make Subtask
+	task_div.classList.remove('task_div_bug','task_div_epic');
+	task_div.classList.add('task_div_task');
+	task_obj.jira_type=jiraType.Subtask;
+	saveStatus();
+    }
+}
+
 function createDomTask(task_obj,
 		       task_number,
 		       checked,
@@ -454,8 +480,6 @@ function createDomTask(task_obj,
 		       indent,
 		       parent_obj) {
 
-    console.log("Parent Object: "+parent_obj);
-
     // Constant naming ids
     const task_id = "task_"+task_number;
     const task_check_id = task_id+"_checkbox";
@@ -464,6 +488,7 @@ function createDomTask(task_obj,
     const task_options_id = task_id+"_options";
     const dropdown_id = task_id+"_dropdown";
     const subtask_div_id = task_id+"_subtask_div";
+    const jira_pop_up_form_div_id = task_id+"_subtask_div";
     
 
     // New task div
@@ -474,7 +499,6 @@ function createDomTask(task_obj,
     task_div.classList.add('task_div_task');
     task_div.style.marginLeft = indent+"px";
 
-    console.log(indent);
     
 
     // Jira div
@@ -489,7 +513,6 @@ function createDomTask(task_obj,
     task_description.innerHTML = task_description_str;
     task_description.id = task_desc_id;
     task_description.addEventListener('dblclick', function (e) {
-	console.log(task_obj);
 	editTask(task_desc_id, task_obj);
     });
 
@@ -541,45 +564,22 @@ function createDomTask(task_obj,
 
     // Delete Task
     var dropdown_option_delete = document.createElement("a");
-    console.log(parent_obj);
     dropdown_option_delete.onclick = function(){
-	console.log(parent_obj);
 	removeElement(task_id, subtask_div_id, task_obj, parent_obj);
     };
     dropdown_option_delete.text = "Delete Task";
 
-    // Make Epic
-    var dropdown_option_epic = document.createElement("a");
-    dropdown_option_epic.onclick = function(){
-	setJiraEpic(task_obj, task_div);
-    };
-    dropdown_option_epic.text = "Epic";
 
-    // Make Task
-    var dropdown_option_task = document.createElement("a");
-    dropdown_option_task.onclick = function(){
-	setJiraTask(task_obj, task_div);
-    };
-    dropdown_option_task.text = "Task";
-
-    // Make Bug
-    var dropdown_option_bug = document.createElement("a");
-    dropdown_option_bug.onclick = function(){
-	setJiraBug(task_obj, task_div);
-    };
-    dropdown_option_bug.text = "Bug";
-
-    // Disable jira
-    var dropdown_option_disable_jira = document.createElement("a");
-    dropdown_option_disable_jira.onclick = function(){
-	toggleJiraEnabled(task_obj,
-			  task_div,
-			  dropdown_option_epic,
-			  dropdown_option_task,
-			  dropdown_option_bug);
-    };
-    dropdown_option_disable_jira.text = "Disable/Enable Jira";
     
+    // Jira Popup Form Button
+    var jira_popup_form_button = document.createElement("a");
+    jira_popup_form_button.onclick = function(){
+	dropDownTaskOptions(dropdown_button);
+	openModal(task_obj, parent_obj, task_div);
+    };
+    jira_popup_form_button.text = "Jira";
+
+
 
     // The subtask div
     var subtask_div = document.createElement("div");
@@ -592,10 +592,7 @@ function createDomTask(task_obj,
     dropdown_div.appendChild(dropdown_option_edit);
     dropdown_div.appendChild(dropdown_option_subtask);
     dropdown_div.appendChild(dropdown_option_delete);
-    dropdown_div.appendChild(dropdown_option_disable_jira);
-    dropdown_div.appendChild(dropdown_option_bug);
-    dropdown_div.appendChild(dropdown_option_epic);
-    dropdown_div.appendChild(dropdown_option_task);
+    dropdown_div.appendChild(jira_popup_form_button);
 
     // Add the drop down button and menu
     task_dropdown.appendChild(dropdown_button);
@@ -617,15 +614,10 @@ function createDomTask(task_obj,
     } else {
 	task_check.checked = false;
     }
-
-    console.log(jira_enabled);
     
     if (jira_enabled){
 	setJiraEnabled(task_obj,
-		       task_div,
-		       dropdown_option_epic,
-		       dropdown_option_task,
-		       dropdown_option_bug)
+		       task_div)
 	
 	if (jira_type == jiraType.Bug){
 	    setJiraBug(task_obj, task_div);
@@ -633,15 +625,13 @@ function createDomTask(task_obj,
 	    setJiraEpic(task_obj, task_div);
 	} else if (jira_type = jiraType.Task){
 	    setJiraTask(task_obj, task_div);
+	} else if (jira_type = jiraType.Subtask){
+	    setJiraSubtask(task_obj, task_div);
 	}
 	
     } else {
-	console.log("jira disabled");
 	setJiraDisabled(task_obj,
-			task_div,
-			dropdown_option_epic,
-			dropdown_option_task,
-			dropdown_option_bug)
+			task_div)
     }
 
     
@@ -662,20 +652,16 @@ formOpen = false;
 
 function toggleForm() {
     form_obj = document.getElementById("myForm");
-    console.log(form_obj);
-    console.log(formOpen);
     if (formOpen) {
 	formOpen = false;
 	form_obj.style.display = "none";
     } else {
-	console.log("Changing");
 	formOpen = true;
 	form_obj.style.display = "block";
     }
 }
 
 function closeForm() {
-    console.log('Closing form');
     form_obj = document.getElementById("myForm");
     formOpen = false;
     form_obj.style.display = "none";
@@ -683,4 +669,177 @@ function closeForm() {
 
 //blankSaveStatus();
 loadStatus();
+
+setASLDescription();
+
+
+
+
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+function setModalButtonClass(jira_enabled, jira_name, task_type){
+
+    console.log(jira_enabled);
+
+    // Get the button objects
+    enable_btn = document.getElementById("jira-modal-toggle");
+    epic_btn = document.getElementById("jira-modal-epic");
+    task_btn = document.getElementById("jira-modal-task");
+    bug_btn = document.getElementById("jira-modal-bug");
+    subtask_btn = document.getElementById("jira-modal-subtask");
+
+    // If we are disabled, make the option buttons darker
+
+    if (jira_name){
+	enable_btn.classList.add('modal-content-disabled');
+    } else {
+	enable_btn.classList.remove('modal-content-disabled');
+    }
+    
+    if (!jira_enabled){
+	
+	epic_btn.classList.add('modal-content-disabled')
+	task_btn.classList.add('modal-content-disabled')
+	bug_btn.classList.add('modal-content-disabled')
+	subtask_btn.classList.add('modal-content-disabled')
+
+	epic_btn.classList.remove('modal-content-selected')
+	task_btn.classList.remove('modal-content-selected')
+	bug_btn.classList.remove('modal-content-selected')
+	subtask_btn.classList.remove('modal-content-selected')
+	
+    } else {
+	
+	epic_btn.classList.remove('modal-content-disabled')
+	task_btn.classList.remove('modal-content-disabled')
+	bug_btn.classList.remove('modal-content-disabled')
+	subtask_btn.classList.remove('modal-content-disabled')
+
+	epic_btn.classList.remove('modal-content-selected')
+	task_btn.classList.remove('modal-content-selected')
+	bug_btn.classList.remove('modal-content-selected')
+	subtask_btn.classList.remove('modal-content-selected')
+	
+	if (task_type == jiraType.Epic){
+	    epic_btn.classList.add('modal-content-selected')
+	} else if (task_type == jiraType.Task){
+	    task_btn.classList.add('modal-content-selected')
+	} else if (task_type == jiraType.Bug){
+	    bug_btn.classList.add('modal-content-selected')
+	} else if (task_type == jiraType.Subtask){
+	    subtask_btn.classList.add('modal-content-selected')
+	}
+    }
+    
+}
+
+function openModal(task_obj, parent_task_obj, task_div){
+    
+    var task_jira_type = parent_task_obj.jira_type;
+    var parent_jira_type = parent_task_obj.jira_type;
+
+    var task_jira_name = task_obj.jira_name
+
+    if (!task_jira_name){
+	task_jira_name = "No Jira Tag";
+    }
+
+    document.getElementById("jira-modal-tag").innerHTML=task_jira_name;
+
+    document.getElementById("jira-modal-toggle").onclick = function(){
+	if (task_obj.jira_name){
+	    alert("Can not disable jira once it is submitted to the DB");
+	} else {
+	    toggleJiraEnabled(task_obj, task_div);
+	    console.log(task_obj.jira_enabled, task_obj.jira_name, task_obj.jira_type);
+	    setModalButtonClass(task_obj.jira_enabled, task_obj.jira_name, task_obj.jira_type);
+	}
+    };
+    
+    document.getElementById("jira-modal-epic").onclick = function(){
+	var jira_name = task_obj.jira_name
+	if (task_obj.jira_enabled){
+	    // An epic can only come from a None parent
+	    if (parent_task_obj.jira_type == jiraType.None){
+		console.log(task_obj.jira_enabled, task_obj.jira_name, task_obj.jira_type);
+		console.log(task_obj);
+		setJiraEpic(task_obj, task_div);
+		console.log(task_obj);
+		console.log(task_obj.jira_enabled, task_obj.jira_name, task_obj.jira_type);
+		setModalButtonClass(true, jira_name, jiraType.Epic);
+	    } else {
+		alert("Epic parent must be None");
+	    }
+	}
+    };
+
+    document.getElementById("jira-modal-task").onclick = function(){
+	
+	var jira_name = task_obj.jira_name
+	if (task_obj.jira_enabled){
+	    // An task can only come from a None or Epic parent
+	    if (parent_task_obj.jira_type == jiraType.None ||
+		parent_task_obj.jira_type == jiraType.Epic){
+		setJiraTask(task_obj, task_div);
+		setModalButtonClass(true, jira_name, jiraType.Task);
+	    } else {
+		alert("Task parent must be None or Epic");
+	    }
+	}
+    };
+
+    document.getElementById("jira-modal-bug").onclick = function(){
+	var jira_name = task_obj.jira_name
+	if (task_obj.jira_enabled){
+	    // A bug can only come from a None or Epic parent
+	    if (parent_task_obj.jira_type == jiraType.None ||
+		parent_task_obj.jira_type == jiraType.Epic){
+		setJiraBug(task_obj, task_div);
+		setModalButtonClass(true, jira_name, jiraType.Bug);
+	    } else {
+		alert("Bug parent must be None or Epic");
+	    }
+	}
+    };
+
+    document.getElementById("jira-modal-subtask").onclick = function(){
+	var jira_name = task_obj.jira_name
+	if (task_obj.jira_enabled){
+	    // An epic can only come from a None parent
+	    if (parent_task_obj.jira_type == jiraType.Epic ||
+		parent_task_obj.jira_type == jiraType.Task ||
+		parent_task_obj.jira_type == jiraType.Bug){
+		setJiraSubtask(task_obj, task_div);
+		setModalButtonClass(true, jira_name, jiraType.Subtask);
+	    } else {
+		alert("Subtask parent must be Epic, Task, or Bug");
+	    }
+	}
+    };
+
+    setModalButtonClass(task_obj.jira_enabled,
+			task_obj.jira_name,
+			task_obj.jira_type);
+    
+    var modal = document.getElementById("myModal");
+    modal.style.display = "block";
+    
+}
+
+// When the user clicks on the button, open the modal
+btn.onclick = function() {
+  modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+  modal.style.display = "none";
+}
 
