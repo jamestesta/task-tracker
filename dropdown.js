@@ -181,6 +181,16 @@ function removeAllChildNodes(parent) {
 /* When the user clicks on the button,
    toggle between hiding and showing the dropdown content */
 function dropDownTaskOptions(button) {
+
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+	var openDropdown = dropdowns[i];
+	if (openDropdown.classList.contains('show')) {
+	    openDropdown.classList.remove('show');
+	}
+    }
+    
     var dropdown_id = button.getAttribute('dropdown_id');
     document.getElementById(dropdown_id).classList.toggle("show");
 }
@@ -198,6 +208,8 @@ window.onclick = function(event) {
 	    }
 	}
     }
+
+    
 
     // When the user clicks on the settings button
 
