@@ -34,6 +34,7 @@ class task_tracker{
 	this.indent = 30;
 	this.autosaveload = false;
 	this.subtasks = [];
+	this.jira_switch = true;
     }
 }
 
@@ -48,6 +49,28 @@ function saveStatus(override){
     }
 }
 
+function toggleJiraSwitch(){
+    if (task_tracker_obj.jira_switch){
+	task_tracker_obj.jira_switch = false;
+	var jira_buttons = document.getElementsByClassName("jira-btn");
+	var i;
+	for (i = 0; i < jira_buttons.length; i++) {
+	    var jbtn = jira_buttons[i];
+	    jbtn.classList.add('hide');
+	}
+    } else {
+	task_tracker_obj.jira_switch = true;
+	var jira_buttons = document.getElementsByClassName("jira-btn");
+	var i;
+	for (i = 0; i < jira_buttons.length; i++) {
+	    var jbtn = jira_buttons[i];
+	    jbtn.classList.remove('hide');
+	}
+    }
+    setJiraSwitchDescription();
+    saveStatus();
+}
+
 function toggleAutoSaveLoad(){
     if (task_tracker_obj.autosaveload){
 	task_tracker_obj.autosaveload = false;
@@ -57,6 +80,15 @@ function toggleAutoSaveLoad(){
 
     setASLDescription();
     saveStatus(true);
+}
+
+function setJiraSwitchDescription(){
+    js_obj = document.getElementById("jira_switch_btn");
+    if (task_tracker_obj.jira_switch){
+	js_obj.innerHTML = "Disable";
+    } else {
+	js_obj.innerHTML = "Enable";
+    }
 }
 
 function setASLDescription(){
@@ -458,7 +490,7 @@ function setJiraTask(task_obj, task_div){
     }
 }
 
-function setJiraTask(task_obj, task_div){
+function setJiraSubtask(task_obj, task_div){
     if (task_obj.jira_enabled){
 	// Make Subtask
 	task_div.classList.remove('task_div_bug','task_div_epic');
@@ -574,10 +606,15 @@ function createDomTask(task_obj,
     // Jira Popup Form Button
     var jira_popup_form_button = document.createElement("a");
     jira_popup_form_button.onclick = function(){
-	dropDownTaskOptions(dropdown_button);
-	openModal(task_obj, parent_obj, task_div);
+	if (task_tracker_obj.jira_switch){
+	    openModal(task_obj, parent_obj, task_div);
+	}
     };
+    if (!task_tracker_obj.jira_switch){
+	jira_popup_form_button.classList.add('hide');
+    }
     jira_popup_form_button.text = "Jira";
+    jira_popup_form_button.classList.add('jira-btn');
 
 
 
@@ -671,7 +708,7 @@ function closeForm() {
 loadStatus();
 
 setASLDescription();
-
+setJiraSwitchDescription();
 
 
 
@@ -833,10 +870,6 @@ function openModal(task_obj, parent_task_obj, task_div){
     
 }
 
-// When the user clicks on the button, open the modal
-btn.onclick = function() {
-  modal.style.display = "block";
-}
 
 // When the user clicks on <span> (x), close the modal
 span.onclick = function() {

@@ -21,6 +21,10 @@
    */
 }
 
+.jira-btn{
+
+}
+
 .jira_tag {
     float: left;
     position: relative;
@@ -131,6 +135,8 @@
 .dropdown-content-disabled {
     background-color: grey;
 }
+
+.dropdown-content a.hide {display:none;}
 
 /* Links inside the dropdown */
 .dropdown-content a {

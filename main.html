@@ -8,8 +8,8 @@
   
   <body>
     <button type="button" onclick="newTaskFromButton('task_holder')">New Task</button>
-    <button type="button" onclick="saveStatus()">Save</button>
-    <button id="myBtn">Open Modal</button>
+    <!--<button type="button" onclick="saveStatus()">Save</button>-->
+    <!--<button id="myBtn">Open Modal</button>-->
     <button class="open-button" onclick="toggleForm()">Settings</button>
     <div class="form-popup" id="myForm" style="display: none;">
       <!-- Not sure if i need this as a form or if it can be taken out-->
@@ -21,6 +21,9 @@
 	<br>
 	<label for="autosaveload"><b>Auto Save/Load</b></label>
 	<button id="autosaveload_btn" name="autosaveload" onclick="toggleAutoSaveLoad()">Enable/Disable</button>
+	<br>
+	<label for="jira_switch"><b>Jira</b></label>
+	<button id="jira_switch_btn" name="jira_switch" onclick="toggleJiraSwitch()">Enable/Disable</button>
       </form>
     </div>
     <div id="task_holder">
