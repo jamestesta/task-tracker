@@ -58,6 +58,14 @@ function toggleJiraSwitch(){
 	    var jbtn = jira_buttons[i];
 	    jbtn.classList.add('hide');
 	}
+
+	var jira_tags = document.getElementsByClassName("jira_tag");
+	var i;
+	for (i = 0; i < jira_tags.length; i++) {
+	    var jtag = jira_tags[i];
+	    jtag.classList.add('hide');
+	}
+	
     } else {
 	task_tracker_obj.jira_switch = true;
 	var jira_buttons = document.getElementsByClassName("jira-btn");
@@ -65,6 +73,13 @@ function toggleJiraSwitch(){
 	for (i = 0; i < jira_buttons.length; i++) {
 	    var jbtn = jira_buttons[i];
 	    jbtn.classList.remove('hide');
+	}
+
+	var jira_tags = document.getElementsByClassName("jira_tag");
+	var i;
+	for (i = 0; i < jira_tags.length; i++) {
+	    var jtag = jira_tags[i];
+	    jtag.classList.remove('hide');
 	}
     }
     setJiraSwitchDescription();
@@ -536,6 +551,9 @@ function createDomTask(task_obj,
     // Jira div
     var jira_tag = document.createElement("div");
     jira_tag.classList.add('jira_tag');
+    if (!task_tracker_obj.jira_switch){
+	jira_tag.classList.add('hide');
+    }
     jira_tag.innerHTML = jira_tag_str;
     jira_tag.id = jira_tag_id;
 

@@ -21,8 +21,10 @@
    */
 }
 
-.jira-btn{
+.jira-btn{}
 
+.hide {
+    display: none;
 }
 
 .jira_tag {
