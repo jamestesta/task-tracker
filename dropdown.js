@@ -1,9 +1,4 @@
 
-
-
-
-
-
 const jiraType = {
     None: 'None',
     Bug: 'Bug',
@@ -301,7 +296,7 @@ function newTask(parent_subtask_div_id, parent_obj) {
     checked = false;
     jira_enabled = false;
     jira_type = jiraType.None;
-    jira_tag_str = "";
+    jira_tag_str = "HART-5120";
     new_task = true;
     indent = task_tracker_obj.indent;
     
